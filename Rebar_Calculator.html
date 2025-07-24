@@ -1,0 +1,214 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>钢筋重量计算器</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        h2 {
+            color: #1a73e8;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #e0e0e0;
+            padding: 12px;
+            text-align: center;
+        }
+        th {
+            background-color: #e8f0fe;
+            color: #1a73e8;
+            font-weight: 600;
+        }
+        td {
+            color: #333;
+        }
+        input {
+            width: 80px;
+            padding: 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 14px;
+        }
+        input:focus {
+            outline: none;
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
+        }
+        button {
+            display: block;
+            margin: 0 auto;
+            padding: 10px 24px;
+            background-color: #1a73e8;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #1557b0;
+        }
+        #totalWeight {
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a73e8;
+            margin-top: 20px;
+        }
+        .unit {
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h2>钢筋重量计算器</h2>
+    <table id="rebarTable">
+        <thead>
+            <tr>
+                <th>钢筋直径<br><span class="unit">(mm)</span></th>
+                <th>每米重量<br><span class="unit">(KG/M)</span></th>
+                <th>捆数<br><span class="unit">(每捆2吨)</span></th>
+                <th>根数<br><span class="unit">(PCS)</span></th>
+                <th>长度<br><span class="unit">(M)</span></th>
+                <th>重量<br><span class="unit">(吨)</span></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>8</td>
+                <td>0.395</td>
+                <td><input type="number" min="0" value="0" onchange="calculateWeight()"></td>
+                <td><input type="number" min="0" value="0" onchange="calculateWeight()"></td>
+                <td><input type="number" min="0" value="12" step="0.1" onchange="calculateWeight()"></td>
+                <td class="weight">0</td>
+            </tr>
+            <tr>
+                <td>10</td>
+                <td>0.617</td>
+                <td><input type="number" min="0" value="0" onchange="calculateWeight()"></td>
+                <td><input type="number" min="0" value="0" onchange="calculateWeight()"></td>
+                <td><input type="number" min="0" value="12" step="0.1" onchange="calculateWeight()"></td>
+                <td class="weight">0</td>
+            </tr>
+            <tr>
+                <td>12</td>
+                <td>0.888</td>
+                <td><input type="number" min="0" value="0" onchange="calculateWeight()"></td>
+                <td><input type="number" min="0" value="0" onchange="calculateWeight()"></td>
+                <td><input type="number" min="0" value="12" step="0.1" onchange="calculateWeight()"></td>
+                <td class="weight">0</td>
+            </tr>
+            <tr>
+                <td>16</td>
+                <td>1.578</td>
+                <td><input type="number" min="0" value="0" onchange="calculateWeight()"></td>
+                <td><input type="number" min="0" value="0" onchange="calculateWeight()"></td>
+                <td><input type="number" min="0" value="12" step="0.1" onchange="calculateWeight()"></td>
+                <td class="weight">0</td>
+            </tr>
+            <tr>
+                <td>20</td>
+                <td>2.467</td>
+                <td><input type="number" min="0" value="0" onchange="calculateWeight()"></td>
+                <td><input type="number" min="0" value="0" onchange="calculateWeight()"></td>
+                <td><input type="number" min="0" value="12" step="0.1" onchange="calculateWeight()"></td>
+                <td class="weight">0</td>
+            </tr>
+            <tr>
+                <td>25</td>
+                <td>3.853</td>
+                <td><input type="number" min="0" value="0" onchange="calculateWeight()"></td>
+                <td><input type="number" min="0" value="0" onchange="calculateWeight()"></td>
+                <td><input type="number" min="0" value="12" step="0.1" onchange="calculateWeight()"></td>
+                <td class="weight">0</td>
+            </tr>
+        </tbody>
+    </table>
+    <button onclick="calculateWeight()">计算</button>
+    <div id="totalWeight">总重量: 0 吨</div>
+
+    <script>
+        function calculateWeight() {
+            const rows = document.querySelectorAll("#rebarTable tbody tr");
+            let totalWeight = 0;
+
+            rows.forEach(row => {
+                const unitWeight = parseFloat(row.cells[1].textContent); // 每米重量 (kg/m)
+                const bundles = parseInt(row.cells[2].querySelector("input").value) || 0; // 捆数
+                const pieces = parseInt(row.cells[3].querySelector("input").value) || 0; // 根数
+                const length = parseFloat(row.cells[4].querySelector("input").value) || 12; // 长度 (m)
+
+                // 计算捆的重量 (吨)
+                const bundleWeight = bundles * 2; // 每捆2吨
+                // 计算散根的重量 (吨)
+                const pieceWeight = (pieces * unitWeight * length) / 1000; // 转换为吨
+                // 总重量
+                const rowWeight = bundleWeight + pieceWeight;
+                row.cells[5].textContent = rowWeight.toFixed(3); // 显示保留3位小数
+
+                totalWeight += rowWeight;
+            });
+
+            document.getElementById("totalWeight").textContent = `总重量: ${totalWeight.toFixed(3)} 吨`;
+        }
+    </script>
+</body>
+</html>
